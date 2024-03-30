@@ -1,0 +1,27 @@
+{
+  "name": "backpack",
+  "version": "1.0.0",
+  "description": "backend project to be utilised for the fullstack react application ",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Gauravsharma-2002/backpack.git"
+  },
+  "keywords": [
+    "i",
+    "dont",
+    "know",
+    "what",
+    "to",
+    "say"
+  ],
+  "author": "Gaurav Sharma",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Gauravsharma-2002/backpack/issues"
+  },
+  "homepage": "https://github.com/Gauravsharma-2002/backpack#readme"
+}
