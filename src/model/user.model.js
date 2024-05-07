@@ -52,7 +52,7 @@ const UserSchema = new Mongoose.Schema(
 UserSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
 
-  await bcrypt.hash(this.password, 9);
+ this.password= await bcrypt.hash(this.password, 10);
   next();
 });
 //check if iser entered correct password
