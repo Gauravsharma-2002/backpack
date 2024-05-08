@@ -9,20 +9,23 @@ cloudinary.config({
 const uploadOnCloudinary = async (localFilePath) => {
   try {
     // uploading on cloudinary
-    // if no file is in input return null 
+    // if no file is in input return null
     //  else upload it at cloudinary
     // const response = await cloudinary.uploader.upload(
     //   "https://upload.wikimedia.org/wikipedia/commons/a/ae/Olympic_flag.jpg",
     //   { resource_type: "auto" }
     // );
+    // console.log("inCloud",typeof(localFilePath))
+    // console.log("is heer \n")
     if (!localFilePath) return null;
-    const fileUpload = await v2.uploader.upload(localFilePath,{
-      resource_type:"auto",
-    })
+    // console.log("does heer")
+    const fileUpload = await v2.uploader.upload(localFilePath, {
+      resource_type: "auto",
+    });
 
     //file has been uploaded sucessfully
-    console.log("fille uploaded sucessfull", response.url);
-    return response; // returning whole cloudinary response to user
+    // console.log("fille uploaded sucessfull", fileUpload.url);
+    return fileUpload; // returning whole cloudinary response to user
   } catch (error) {
     //remove temporary saved local file as upload failed on server
     fs.unlinkSync(localFilePath); // making it sync because we want to remove the locally saved temp file as upload gets failed
@@ -30,5 +33,4 @@ const uploadOnCloudinary = async (localFilePath) => {
   }
 };
 
-
-export {uploadOnCloudinary}
+export { uploadOnCloudinary };

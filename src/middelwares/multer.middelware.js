@@ -1,8 +1,8 @@
-//multer used{injected} when ever, we need any kind of file upload
 import multer from "multer";
+//multer used{injected} when ever, we need any kind of file upload
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "./Public/Temp"); // this is assigning the the path where the file is getting  stored in server
+    cb(null, "./public/temp"); // this is assigning the the path where the file is getting  stored in server
   },
 
   filename: function (req, file, cb) {
@@ -12,4 +12,4 @@ const storage = multer.diskStorage({
   },
 });
 
-export const upload = multer({ storage: storage });
+export const upload = multer({ storage });
