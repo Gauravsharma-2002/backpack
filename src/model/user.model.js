@@ -57,7 +57,7 @@ UserSchema.pre("save", async function (next) {
 });
 //check if iser entered correct password
 UserSchema.methods.isPasswordCorrect = async function (password) {
-  return bcrypt.compare(password, this.password);
+  return await bcrypt.compare(password, this.password);
 };
 UserSchema.methods.createAccessToken = function () {
   return jwt.sign(
