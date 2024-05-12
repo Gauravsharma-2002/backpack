@@ -1,8 +1,10 @@
 import { Router } from "express";
-import { registerUser } from "../controller/user.controler.js";
+import { logoutUser, registerUser, userLogin } from "../controller/user.controler.js";
 // import { loginUser } from "../controller/user.controler.js";
 // import { upload } from "../middlewares/multer.middleware.js";
+// import { logoutUser } from "../controller/user.controler.js";
 import { upload } from "../middelwares/multer.middelware.js";
+import { verifyJWT } from "../middelwares/auth.middleware.js";
 
 const route = Router();
 // now here define the route which you want to hit
@@ -15,6 +17,10 @@ route.route("/register").post(
   ]),
   registerUser
 ); // means when we hit the route in app.js
-// route.route("/login").post(loginUser);
+route.route("/login").post(userLogin)
+
+
+//secured routes
+route.route("/logout").post(verifyJWT,logoutUser);
 
 export default route;

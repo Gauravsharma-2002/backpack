@@ -5,6 +5,7 @@ import { User } from "../model/user.model.js";
 import { uploadOnCloudinary } from "../utils/Cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 
+// generating refreshToken access token
 const generateRefreshAndAccessToken = async function (userId) {
   //garbarr ho sakti hai
   try {
@@ -174,20 +175,50 @@ const userLogin = asyncHandler(async (req, res) => {
         `${isUser.fullname} is loggedIN `
       )
     );
-    // kara dia tune logged in 
-    // ab logout kara 
-    // dekh teri lagegi 
+  // kara dia tune logged in
+  // ab logout kara
+  // dekh teri lagegi
 });
 
-const logoutUser = asyncHandler (async(req,res)=>{
+const logoutUser = asyncHandler(async (req, res) => {
   // dekh tu aise kaise logout karaiega
-  // tujhe chaie rahiga user kar cookie ko clear karne ka 
-  //  try kar hoga ni ku ki tere pass na id ha na email jaise logut ke lie chahie tha 
-  // to kya karega user se logut karne ke lie form bhariyega 
-  // abe ni bhai middleWare use karne ka idhar 
+  // tujhe chaie rahiga user kar cookie ko clear karne ka
+  //  try kar hoga ni ku ki tere pass na id ha na email jaise logut ke lie chahie tha
+  // to kya karega user se logut karne ke lie form bhariyega
+  // abe ni bhai middleWare use karne ka idhar
   // pahle design kar le ek baar use kaam ho jaiega tera
-  
+  // usme tujhe chaiye rahega user ko verify karane ka
 
-})
+  //ab tak tu req me user object add kar chuka hoaga
+  //ab use use kar aur user ka refresh token ura db se aur logout maar sale ko \
 
-export { registerUser, userLogin };
+  // req.user._id
+  await User.findByIdAndUpdate(
+    req.user._id,
+    {
+      $set: {
+        refreshToken: undefined,
+      },
+    }, //itna kar ke chor dia na to tujhe iske response me jo aya aur tune use kahi use karna hai to vo unupdated aiega
+    //jo value db me pahle thi vahi vali jisme refreshToken para hoga
+    //  to ussese deal karne ke lie kya karo ki agli wali feild add kar do
+    {
+      new: true,
+    }
+  );
+  // dekho ab tumhe refreshToken to uda dia db se
+  // cookies ko bhi uda do
+  // aur dhayan rakhna oprions ka
+  const option = {
+    httpOnly: true,
+    secure: true,
+  };
+
+  return req
+    .status(200)
+    .clearCookie("accessToken", option)
+    .clearCookie("refreshToken", option)
+    .json(new ApiResponse(200, {}, "logged out successfully"));
+});
+
+export { registerUser, userLogin,logoutUser };
