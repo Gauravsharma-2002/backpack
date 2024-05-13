@@ -1,5 +1,9 @@
 import { Router } from "express";
-import { logoutUser, registerUser, userLogin } from "../controller/user.controler.js";
+import {
+  logoutUser,
+  registerUser,
+  userLogin,
+} from "../controller/user.controler.js";
 // import { loginUser } from "../controller/user.controler.js";
 // import { upload } from "../middlewares/multer.middleware.js";
 // import { logoutUser } from "../controller/user.controler.js";
@@ -17,10 +21,9 @@ route.route("/register").post(
   ]),
   registerUser
 ); // means when we hit the route in app.js
-route.route("/login").post(userLogin)
-
+route.route("/login").post(upload.any(), userLogin);
 
 //secured routes
-route.route("/logout").post(verifyJWT,logoutUser);
+route.route("/logout").post(verifyJWT, logoutUser);
 
 export default route;
