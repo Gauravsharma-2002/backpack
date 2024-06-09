@@ -4,7 +4,8 @@ import { User } from "../model/user.model.js";
 // import { upload } from "../middelwares/multer.middelware.js";
 import { uploadOnCloudinary } from "../utils/Cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-
+import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 // generating refreshToken access token
 // const generateRefreshAndAccessToken = async function (userId) {
 //   //garbarr ho sakti hai
@@ -501,6 +502,201 @@ const updateCoverImage = asyncHandler(async (req, res) => {
     );
   }
 });
+// refreshAccessToken
+// to refreshAcessToken user must be logged and on hitting the refreshAccessToken end point new refresh and access token is generated
+//and must have a refresh token
+const refreshAccessToken = asyncHandler(async (req, res) => {
+  try {
+    const inCommingRefreshToken =
+      req.cookies.refreshToken || req.body.refreshToken;
+    if (!inCommingRefreshToken) {
+      throw new apiError(402, "kindly send refreshToken");
+    }
+    // we know that the refreshToken is made by jwt and with only the _id as the data to be decoded
+    const decodedToken = jwt.verify(
+      inCommingRefreshToken,
+      process.env.REFRESH_TOKEN_SECRET
+    );
+    if (!decodedToken) {
+      throw new apiError(402, "no id is decoded from give refreshToken");
+    }
+    // pahle compare karo ki same hai ya ni
+    const user = await User.findById(decodedToken._id);
+    if (user?.refreshToken !== inCommingRefreshToken) {
+      throw new apiError(404, "invalid refreshToken");
+    }
+    // now the decodedToken contains the id of particular account so generate accessToken and refreshToken corrosponding to them
+    const { accessToken, newrefreshToken } =
+      await generateRefreshAndAccessToken(decodedToken?._id);
+    user.refreshToken = newrefreshToken;
+    user.save({ validateBeforeSave: true });
+
+    const option = {
+      httpOnly: true,
+      secure: true,
+    };
+    return res
+      .status(200)
+      .cookie("accessToken", accessToken, option)
+      .cookie("refreshToken", newrefreshToken, option)
+      .json(
+        new ApiResponse(202, "access token refreshed sucessfully", {
+          accessToken,
+          refreshToken: newrefreshToken,
+        })
+      );
+  } catch (error) {
+    throw new apiError(
+      502,
+      " something went wrong while refreshing acess token kindly try again after a momnet "
+    );
+  }
+});
+
+const getUserProfile = asyncHandler(async (req, res) => {
+  //NOTE : params is an object
+
+  const userName = req.params;
+  // console.log(userName);
+  // ALSO note this param object stores everything in form of key-value and VALUE IS ALWAYS STRING
+
+  //
+
+  if (userName?.trim) {
+    throw new apiError(400, "missing user name");
+  }
+
+  const channel = await User.aggregate([
+    {
+      $match: { userName: userName?.toLowerCase },
+    },
+    {
+      $lookup: {
+        from: "subscriptions",
+        localField: "_id",
+        foreignField: "channel",
+        as: "subscribers",
+      },
+    },
+
+    {
+      $lookup: {
+        from: "subscriptions",
+        localField: "_id",
+        foreignField: "subscriber",
+        as: "subscriberTo",
+      },
+    },
+    // another pipeline which addes another feild to {User document }
+    {
+      $addFields: {
+        subscriberCount: {
+          $size: "$subscribers", // note here we are counting the number of documents to count the total subscribers ALSO here $ sign before "subscriber" indicates that it is a feidl and has to be used like this
+        },
+        subscribedToCount: {
+          $size: "$subscriberTo",
+        },
+        isSubscriber: {
+          $cond: {
+            if: { $in: [req.user?._id, "$subscribers.subscriber"] }, // NOTE : $in works on both array and the object and find the match in the given array or object{feild}
+            then: true,
+            else: false,
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        fullname: 1,
+        subscribedToCount: 1,
+        subscriberCount: 1,
+        userName: 1,
+        avatar: 1,
+        coverimage: 1,
+        isSubscriber: 1,
+        email: 1,
+      },
+    },
+    // you have added the required feilds to the document the next thing you have to do is to project it
+  ]);
+
+  // console.log("channel", channel); // as there is no such thing now so the channel would return the empty array for now But we would populate it soon
+
+  // if (!channel?.length) {
+  //   throw new apiError(404, "no channel exists !!! ");
+  // }
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(201, "channel fetched succesfully ||||| ", channel[0])
+    );
+});
+
+const getWatchHistory = asyncHandler(async (req, res) => {
+  // NOTE : here when we do aggregation pipeline we need the id but the issue arises when we try to get the id from req.user._id { which should return the id }, BUT we get String here
+  // point to be noted that, till now we dont get any trouble because the conversion were handeled by the mongooses it self
+  // But while writting aggregation pipeline This fact must be taken care that aggregation pipeline didnot support moongose by itSelf you Need to explicitely add the required modifications
+  // NOTE : the id of mongoDB is in form of ObjectId("dasjlkfgjaewlijflkj") something like this , and mongoose preprocess the and return the internal string only
+
+  const user = await User.aggregate([
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(req.user._id),
+      },
+    },
+    {
+      $lookup: {
+        from: "videos",
+        localField: "watchHistory",
+        foreignField: "_id",
+        as: "watchHistory",
+        pipeline: [
+          {
+            $lookup: {
+              from: "users",
+              localField: "owner",
+              foreignField: "_id",
+              as: "owner",
+              pipeline: [
+                {
+                  $project: {
+                    userName: 1,
+                    avatar: 1,
+                  },
+                },
+              ],
+            },
+          },
+          {
+            //now to facilitate the structure of obtained feild of owner
+            // have to method ARRAYELEMENTSAT or FIRST
+            // here i am adding a feild to the Videos document instead that i am overWritting the owner feild
+            $addFields: {
+              owner: {
+                $first: "$owner",
+              },
+            },
+          },
+        ],
+      },
+    },
+  ]);
+
+  if (!user) {
+    throw new apiError(402, "no watch history is obtained !!!!!! ");
+  }
+  return res
+    .status(201)
+    .json(
+      new ApiResponse(
+        202,
+        "watched history fetched succesfully !!!!!",
+        user[0].watchHistory
+      )
+    );
+});
+
 export {
   registerUser,
   userLogin,
@@ -510,4 +706,7 @@ export {
   userUpdateDetail,
   updateAvatar,
   updateCoverImage,
+  refreshAccessToken,
+  getUserProfile,
+  getWatchHistory,
 };
