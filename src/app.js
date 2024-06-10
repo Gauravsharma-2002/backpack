@@ -20,6 +20,7 @@ app.use(cookieParser());
 //THIS ARE STANDARD PRACTICE AND HAS TO BE FOLLOWED
 //route import
 import  route  from "./routes/user.routes.js";
+import healtCheck from "./routes/healthcheck.routes.js"
 
 // route consumption
 
@@ -28,4 +29,5 @@ import  route  from "./routes/user.routes.js";
 
 app.use("/api/v1/user", route); // means on hitting /api/v1/user  we will controll is transfered to userRoutes of Routes
 // this will give control to user routes forExample localhost:3000/api/v1/user/{register/login/anyOtherRouteInUserRoutes}
+app.use("/api/v1/healthcheck",healtCheck)
 export { app };
