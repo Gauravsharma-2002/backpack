@@ -8,7 +8,7 @@ DB_CONNECT()
   .then(() => {
     app.on("error", (err) => {
       console.error("error occured in server connection db connected", err);
-      throw error;
+      throw  err;
     });
     const server = app.listen(process.env.PORT || 8080, () => {
       console.log(`server listing at port ${process.env.PORT}`);

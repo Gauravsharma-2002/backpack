@@ -19,15 +19,17 @@ app.use(cookieParser());
 
 //THIS ARE STANDARD PRACTICE AND HAS TO BE FOLLOWED
 //route import
-import  route  from "./routes/user.routes.js";
-import healtCheck from "./routes/healthcheck.routes.js"
+import user from "./routes/user.routes.js";
+import healtCheck from "./routes/healthcheck.routes.js";
+import videosRouter from "./routes/videos.routes.js";
 
 // route consumption
 
 // as a middelware when u  hit the route
 //we dont here do the get or post method directly we will  do it in the userRouter{Routes function} as we have segregated the code in different directory
 
-app.use("/api/v1/user", route); // means on hitting /api/v1/user  we will controll is transfered to userRoutes of Routes
+app.use("/api/v1/user", user); // means on hitting /api/v1/user  we will controll is transfered to userRoutes of Routes
 // this will give control to user routes forExample localhost:3000/api/v1/user/{register/login/anyOtherRouteInUserRoutes}
-app.use("/api/v1/healthcheck",healtCheck)
+app.use("/api/v1/healthcheck",healtCheck);
+app.use("/api/v1/videos", videosRouter);
 export { app };
