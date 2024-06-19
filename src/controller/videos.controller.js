@@ -86,6 +86,7 @@ const publishVideo = asyncHandler(async (req, res) => {
         uploadedVideo
       )
     ); // and with this you made your video published
+  //question i wish to ask while making  this controllere from chat gpt but the question give me the solution : "consider yourself a nodejs backend developer with expertise in MERN stack , now you got a question that you have to query the database for only the id of a document"
 });
 const getVideoById = asyncHandler(async (req, res) => {
   const videoId = req.params;
@@ -108,4 +109,73 @@ const getVideoById = asyncHandler(async (req, res) => {
     .json(new ApiResponse(201, "video fetched succesfully", video));
 });
 
-export { publishVideo, getVideoById };
+const updateVideo = asyncHandler(async (req, res) => {
+  const videoId = req.params;
+  // console.log(videoId?.id);
+
+  if (!videoId?.id) {
+    throw new apiError(
+      401,
+      "video_id is required to update the demographics 🚓"
+    );
+  }
+  // console.log(req.body)
+  const { title, description } = req.body;
+  //ALWAYS remeber this thing that IF USING MULTIPART do include middleware in route unless your req.body will be empty
+  // console.log(title,description)
+  if (!title || !description) {
+    throw new apiError(
+      402,
+      "title and description are required for the video to be uploaded !! "
+    );
+  }
+
+  // like here i m just throwing the error if the new items are not available, i can also do the updation based on the fact that if something is missing the previous value retains in the db
+  const unupdatedVideoDoc = await Videos.findById(videoId?.id);
+  // console.log(unupdatedVideoDoc);
+  if (!unupdatedVideoDoc) {
+    return res
+      .status(402)
+      .json(new ApiResponse(402, "no such video exists", {}));
+  }
+
+  //now add the thumbnail
+  const thumbnailPath = req.file.path;
+  if (!thumbnailPath) {
+    throw new apiError(402, "do add the thumbnail for updation");
+  }
+
+  // console.log(thumbnail);
+  const thumbnail = await uploadOnCloudinary(thumbnailPath);
+  // console.log(thumbnail.url);
+
+  unupdatedVideoDoc.title = title;
+  unupdatedVideoDoc.description = description;
+  unupdatedVideoDoc.thumbnail = thumbnail;
+  const updatedVideoDoc = await unupdatedVideoDoc.save({
+    validateBeforeSave: false
+  });
+  // console.log(updatedVideoDoc);
+  if (!updatedVideoDoc) {
+    return res
+      .status(501)
+      .json(
+        new ApiResponse(
+          501,
+          "error ocurred while updating the demographic details of the video"
+        )
+      );
+  }
+
+  return res
+    .status(202)
+    .json(
+      new ApiResponse(
+        202,
+        " demographic details of video updated succes fully ",
+        updatedVideoDoc
+      )
+    );
+});
+
+export { publishVideo, getVideoById, updateVideo };
