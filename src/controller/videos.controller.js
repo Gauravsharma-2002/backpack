@@ -85,7 +85,27 @@ const publishVideo = asyncHandler(async (req, res) => {
         " video uploaded successfully all good nothing to worry of dear 😎 ",
         uploadedVideo
       )
-    );// and with this you made your video published 
+    ); // and with this you made your video published
+});
+const getVideoById = asyncHandler(async (req, res) => {
+  const videoId = req.params;
+
+  // console.log(videoId.id)
+  // console.log(req.params);
+
+  //before making a query we must ensure that there is some thing in params
+
+  const video = await Videos.findById(videoId.id);
+
+  if (!video) {
+    return res
+      .status(402)
+      .json(new ApiResponse(402, "opps no video for this id exists ", {}));
+  }
+  // console.log(video);
+  return res
+    .status(200)
+    .json(new ApiResponse(201, "video fetched succesfully", video));
 });
 
-export { publishVideo };
+export { publishVideo, getVideoById };
