@@ -178,4 +178,23 @@ const updateVideo = asyncHandler(async (req, res) => {
     );
 });
 
-export { publishVideo, getVideoById, updateVideo };
+const togglePublishStatus = asyncHandler(async (req, res) => {
+  console.log("inside toggle publish status");
+  return res
+    .status(202)
+    .json(new ApiResponse(200, "things good inside here", {}));
+  // cosnt {}
+});
+
+const getAllVideos = asyncHandler(async (req, res) => {
+  console.log("inside get all videos method");
+  return res.status(200).json(new ApiResponse(201, "getting all videos", {}));
+});
+
+export {
+  publishVideo,
+  getVideoById,
+  updateVideo,
+  togglePublishStatus,
+  getAllVideos
+};
