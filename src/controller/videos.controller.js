@@ -157,14 +157,7 @@ const updateVideo = asyncHandler(async (req, res) => {
   });
   // console.log(updatedVideoDoc);
   if (!updatedVideoDoc) {
-    return res
-      .status(501)
-      .json(
-        new ApiResponse(
-          501,
-          "error ocurred while updating the demographic details of the video"
-        )
-      );
+    throw new apiError(501,"internal server Error occured !!!");
   }
 
   return res
