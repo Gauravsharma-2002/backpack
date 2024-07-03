@@ -197,17 +197,23 @@ const togglePublishStatus = asyncHandler(async (req, res) => {
   // console.log("inside toggle publish status");
   const { id: videoId } = req.params;
   // console.log(videoId);
-  const updatedToggleStatus = await Videos.findByIdAndUpdate(videoId, {
-    $set: {
-      isPublished: !isPublished
-    }
-  });
-  if (!updatedToggleStatus) {
+  const unUpdatedState = await Videos.findById(videoId);
+  unUpdatedState.isPublished = !unUpdatedState.isPublished;
+  await unUpdatedState.save({validateBeforeSave:false});
+  // unUpdatedState.isPublished  = !unUpdatedState.isPublished;
+  // console.log(unUpdatedState.isPublished);
+
+  // const updatedToggleStatus = await Videos.findByIdAndUpdate(videoId, {
+  //   $set: {
+  //     isPublished: true
+  //   }
+  // });
+  if (!unUpdatedState) {
     throw new apiError(402, "network error unable to toggle status");
   }
   return res
     .status(202)
-    .json(new ApiResponse(200, "things good inside here", updatedToggleStatus));
+    .json(new ApiResponse(200, "things good inside here", unUpdatedState));
   // cosnt {}
 });
 
