@@ -108,6 +108,28 @@ const getVideoById = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(201, "video fetched succesfully", video));
 });
+// also add an undo route OR it may be handled in frontend
+const deleteVideoByItsId = asyncHandler(async (req, res) => {
+  // require video id for getting deleted
+  const { id: videoId } = req.params;
+  // if video doesn't exist then it returns the null value hence can not delete or either if video doesn't get deleted from db again get null in response
+  const deletedVideoInfo = await Videos.findByIdAndDelete(videoId, {
+    lean: true
+  });
+  // console.log(deletedVideoInfo);
+  if (!deletedVideoInfo) {
+    throw new apiError(402, "no such video exit mf 🙂,get lost ");
+  }
+  return res
+    .status(202)
+    .json(
+      new ApiResponse(
+        202,
+        `video with id : ${videoId}, deleted sucessfully`,
+        deletedVideoInfo
+      )
+    );
+});
 
 const updateVideo = asyncHandler(async (req, res) => {
   const videoId = req.params;
@@ -157,7 +179,7 @@ const updateVideo = asyncHandler(async (req, res) => {
   });
   // console.log(updatedVideoDoc);
   if (!updatedVideoDoc) {
-    throw new apiError(501,"internal server Error occured !!!");
+    throw new apiError(501, "internal server Error occured !!!");
   }
 
   return res
@@ -172,10 +194,20 @@ const updateVideo = asyncHandler(async (req, res) => {
 });
 
 const togglePublishStatus = asyncHandler(async (req, res) => {
-  console.log("inside toggle publish status");
+  // console.log("inside toggle publish status");
+  const { id: videoId } = req.params;
+  // console.log(videoId);
+  const updatedToggleStatus = await Videos.findByIdAndUpdate(videoId, {
+    $set: {
+      isPublished: !isPublished
+    }
+  });
+  if (!updatedToggleStatus) {
+    throw new apiError(402, "network error unable to toggle status");
+  }
   return res
     .status(202)
-    .json(new ApiResponse(200, "things good inside here", {}));
+    .json(new ApiResponse(200, "things good inside here", updatedToggleStatus));
   // cosnt {}
 });
 
@@ -188,6 +220,7 @@ export {
   publishVideo,
   getVideoById,
   updateVideo,
+  deleteVideoByItsId,
   togglePublishStatus,
   getAllVideos
 };
