@@ -26,7 +26,7 @@ videosRouter
   .route("/updatevideo/:id")
   .patch(verifyJWT, upload.single("thumbnail"), updateVideo);
 // 66730a08f499664356bf3b65
-videosRouter.route("/delete-video/:id").delete(verifyJWT,deleteVideoByItsId);
+videosRouter.route("/delete-video/:id").delete(verifyJWT, deleteVideoByItsId);
 
 // toggle publish status of the video
 // this must contains the id of the video to be toggeled
