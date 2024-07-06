@@ -22,6 +22,7 @@ app.use(cookieParser());
 import user from "./routes/user.routes.js";
 import healtCheck from "./routes/healthcheck.routes.js";
 import videosRouter from "./routes/videos.routes.js";
+import playlistRouter from "./routes/playlist.routes.js";
 
 // route consumption
 
@@ -32,4 +33,5 @@ app.use("/api/v1/user", user); // means on hitting /api/v1/user  we will control
 // this will give control to user routes forExample localhost:3000/api/v1/user/{register/login/anyOtherRouteInUserRoutes}
 app.use("/api/v1/healthcheck",healtCheck);
 app.use("/api/v1/videos", videosRouter);
+app.use("/api/v1/playlist",playlistRouter)
 export { app };
