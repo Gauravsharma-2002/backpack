@@ -2,6 +2,7 @@ import { Playlist } from "../model/playlist.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { apiError } from "../utils/errors.js";
+import mongoose from "mongoose";
 
 // want to add the max count of playlist that can be created for a particular user
 const createPlaylist = asyncHandler(async (req, res) => {
@@ -53,7 +54,7 @@ const createPlaylist = asyncHandler(async (req, res) => {
       videos: [videoId],
       owner: ownerId
     };
-    console.log("final playlist to be added value", playlistObject);
+    // console.log("final playlist to be added value", playlistObject);
     const playlist = await Playlist.create({
       ...playlistObject
     }); //next i will verify if playlist created or not
@@ -64,7 +65,7 @@ const createPlaylist = asyncHandler(async (req, res) => {
         "internal server error occured while creating playlist"
       );
     }
-    console.log(createdPlaylist);
+    // console.log(createdPlaylist);
     return res
       .status(300)
       .json(
@@ -121,6 +122,61 @@ const updatePlaylist = asyncHandler(async (req, res) => {
   // console.log("inside update playlist ")
   // return res.status(200).json(new ApiResponse(200,"inside update playlist",{}))
 });
-const addVideoToPlaylist = asyncHandler(async (req, res) => {});
+const addVideoToPlaylist = asyncHandler(async (req, res) => {
+  const { ...videoList } = req.query;
+  // console.log(videoList.isEmpty  )
 
-export { createPlaylist, addVideoToPlaylist, updatePlaylist };
+  //     console.log(videoList?.videoList?.length);
+  if (Object.keys(videoList).length === 0 && req.query.constructor === Object) {
+    throw new apiError(401, "requires videoId for addition in playlist ");
+  }
+  // here is a vulnerability that is needed to upgraged to handle video addition in playlist with  hte case in which no or one or more than two video id is supplied
+  // console.log( typeof(videoList.videoList));
+  // console.log( videoList);
+  // console.log( Object.keys(videoList).length);
+  // now check if type === object and > 2 throw
+  // check if type === string
+  // if(typeof(videoList)==="string" ){
+  //  const localVideoReff = videoList;
+  //  console.log(localVideoReff);
+
+  // }else if (typeof(videoList) === "object" && videoList.videoList.length > 2) {
+  //   // console.log(typeof(videoList.videoList));
+  //   throw new apiError(
+  //     402,
+  //     "you cannot add more than 2 videos at a time in  playlist "
+  //   );
+  // }
+
+  //  we need to do two things first check if given video is present in playlist or not and only add those which are not present in the playlist
+
+  return res
+    .status(202)
+    .json(new ApiResponse(202, "video added to playlist succesfully", {}));
+});
+
+const deleteVideo = asyncHandler(async (req, res) => {
+  const { videoId, playlistId } = req.query;
+  const videoId1 = new mongoose.Types.ObjectId(videoId);
+  if (!playlistId) {
+    throw new apiError(402, "playlist id is reqired to delete from the list");
+  }
+  const fetchPlaylist = await Playlist.findById(playlistId);
+  // console.log(fetchPlaylist);
+  // need to check if video is present in the playlist or not
+  const isPresent = fetchPlaylist?.videos?.includes(videoId);
+  // console.log(isPresent);
+  if (!isPresent) {
+    throw new apiError(
+      402,
+      "requested video to delete does not exisit in playlist"
+    );
+  }
+  const updatedList = fetchPlaylist?.videos?.filter((id) => id!==videoId1);
+  console.log("updatedList",updatedList);
+
+  return res
+    .status(202)
+    .json(new ApiResponse(201, "inside delete video controller ", {}));
+});
+export { createPlaylist, addVideoToPlaylist, updatePlaylist, deleteVideo };
